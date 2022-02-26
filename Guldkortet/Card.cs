@@ -11,15 +11,68 @@ namespace Guldkortet
         protected string Number;
         protected string Type;
 
-        public void Class(string cardNumber)
+        public Card() { }
+
+        public Card(string cardNumber)
         {
             Number = cardNumber;
         }
+
+        public bool CardInfoMatch(List<Card> cards, string cardInfo)
+        {
+            if (cards.Count != 0)
+            {
+                for (int i = 0; i < cards.Count; i++)
+                {
+                    if (cards[i].Number == cardInfo)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            else { return false; }
+        }
+        public bool UserInfoMatch(List<string[]> users, string userInfo)
+        {
+            if (users.Count != 0)
+            {
+                foreach (var user in users)
+                {
+                    if (user[0] == userInfo) // kundnummer ligger under index 0
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            else { return false; }
+        }
+
+        public void BlockUser(List<string[]> users, List<string> blockedUsers, string user)
+        {
+            if (users.Count > 0)
+            {
+                blockedUsers.Add(user);
+            }
+        }
+        public bool IsUserBlocked(List<string[]> users, List<string> blockedUsers, string user)
+        {
+            if (users.Count > 0)
+            {
+                for (int i = 0; i < blockedUsers.Count; i++)
+                {
+                    if (blockedUsers[i] == user) { return true; }
+                }
+            }
+            return false;
+        }
+
     }
 
     class Kristallhäst : Card
     {
-        public Kristallhäst()
+        public Kristallhäst(string cardNumber) : base (cardNumber)
         {
             Type = "Kristallhäst";
         }
@@ -27,7 +80,7 @@ namespace Guldkortet
 
     class Dunkerkatt : Card
     {
-        public Dunkerkatt()
+        public Dunkerkatt(string cardNumber) : base (cardNumber)
         {
             Type = "Dunkerkatt";
         }
@@ -35,7 +88,7 @@ namespace Guldkortet
 
     class Eldtomat : Card
     {
-        public Eldtomat()
+        public Eldtomat(string cardNumber) : base(cardNumber)
         {
             Type = "Eldtomat";
         }
@@ -43,7 +96,7 @@ namespace Guldkortet
 
     class Överpanda : Card
     {
-        public Överpanda()
+        public Överpanda(string cardNumber) : base(cardNumber)
         {
             Type = "Överpanda";
         }

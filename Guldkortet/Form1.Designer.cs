@@ -105,6 +105,8 @@
         private System.Windows.Forms.Button btnStartaKlient;
         private System.Windows.Forms.Button btnDekonstruering;
         private System.Windows.Forms.Button btnFelprövning;
+
+
     }
 }
 
