@@ -55,7 +55,7 @@ namespace Guldkortet
             {
                 start = await client.GetStream().ReadAsync(buffer, 0, buffer.Length);
             }
-            catch(Exception ex) { MessageBox.Show(ex.Message, Text); }
+            catch(Exception ex) { MessageBox.Show(ex.Message, Text); return; }
 
             messageFromClient = Encoding.Unicode.GetString(buffer, 0, start);
             txbTextKontroll.AppendText(messageFromClient); // DELETE LATER
@@ -116,41 +116,6 @@ namespace Guldkortet
             // method that converts data inside to usable and addable to the card class
         }
 
-        public void UserInfoMatch()
-        {
-            if (users.Count != 0)
-            {
-                foreach (var item in users)
-                {
-                    if (item[0] == userInfo)
-                    {
-                        txbTextKontroll.Text = item[0];
-                    }
-                }
-            }
-            else { MessageBox.Show("Download user data"); }
-        }
-
-        public void BlockUser(string user)
-        {
-            if (users.Count > 0)
-            {
-                blockedUsers.Add(user);
-            }
-        }
-        public bool IsUserBlocked(string user)
-        {
-            if (users.Count > 0)
-            {
-                for (int i = 0; i < blockedUsers.Count; i++)
-                {
-                    if (blockedUsers[i] == user) { return true; }
-                }
-            }
-            return false;
-        }
-
-        
         public void StoreData(List<string[]> saveList)
         {
             List<string> cardList = new List<string>();
@@ -166,6 +131,23 @@ namespace Guldkortet
         public void StoreUserData(List<string[]> l)
         {
             users = l;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                listener.Stop();
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
+        }
+
+        private void btnFileLoad_Click(object sender, EventArgs e)
+        {
+            FileSave(FileLoad(FILE_PATH_USERS));
+
+            FileSave(FileLoad(FILE_PATH_CARDS));
+
         }
 
         public void StoreCardData(List<string[]> l)
@@ -206,11 +188,14 @@ namespace Guldkortet
 
         private void btnDekonstruering_Click(object sender, EventArgs e)
         {
-            if (ValidityCheck.IsCodeInCorrectFormat(messageFromClient))
+            if (ValidityChecks.IsCodeInCorrectFormat(messageFromClient))
             {
-                string[] commonData = ValidityCheck.Dekonstruering(messageFromClient);
+                string[] commonData = ValidityChecks.Dekonstruering(messageFromClient);
                 userInfo = commonData[0];
                 cardInfo = commonData[1];
+
+                listBox1.Text = userInfo.ToString(); // DELETE LATER
+                listBox1.Text = cardInfo.ToString(); // DELETE LATER
             }
             else { MessageBox.Show("Data input incorrect"); }
             // TODO send message to client
