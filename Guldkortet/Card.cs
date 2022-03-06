@@ -6,66 +6,55 @@ using System.Threading.Tasks;
 
 namespace Guldkortet
 {
-    internal class Card
+    internal class Card : GuldkortWinner
     {
-        protected string Number;
-        protected string Type;
+        public string Number { get; set; }
 
         public Card() { }
 
         public Card(string cardNumber)
         {
-            Number = cardNumber;
+            this.Number = cardNumber;
         }
 
-        public bool CardInfoMatch(List<Card> cards, string cardInfo)
+        // needed??
+        public Card(string userInfo, string cardInfo, string type)
         {
-            if (cards.Count != 0)
+            if (userInfo == UserNumber)
             {
-                for (int i = 0; i < cards.Count; i++)
+                Number = cardInfo;
+                switch (type)
                 {
-                    if (cards[i].Number == cardInfo)
-                    {
-                        return true;
-                    }
+                    case "Kristallhäst":
+                        {
+                            CardList.Add(new Kristallhäst(cardInfo));
+                            break;
+                        }
+
+                    case "Överpanda":
+                        {
+                            CardList.Add(new Överpanda(cardInfo));
+                            break;
+                        }
+
+                    case "Eldtomat":
+                        {
+                            CardList.Add(new Eldtomat(cardInfo));
+                            break;
+                        }
+                    default:
+                        {
+                            CardList.Add(new Dunderkatt(cardInfo));
+                            break;
+                        }
                 }
-                return false;
             }
-            else { return false; }
         }
-        
 
-    }
-
-    class Kristallhäst : Card
-    {
-        public Kristallhäst(string cardNumber) : base (cardNumber)
+        public override string ToString()
         {
-            Type = "Kristallhäst";
+            return Type;
         }
     }
 
-    class Dunkerkatt : Card
-    {
-        public Dunkerkatt(string cardNumber) : base (cardNumber)
-        {
-            Type = "Dunkerkatt";
-        }
-    }
-
-    class Eldtomat : Card
-    {
-        public Eldtomat(string cardNumber) : base(cardNumber)
-        {
-            Type = "Eldtomat";
-        }
-    }
-
-    class Överpanda : Card
-    {
-        public Överpanda(string cardNumber) : base(cardNumber)
-        {
-            Type = "Överpanda";
-        }
-    }
 }

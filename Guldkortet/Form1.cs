@@ -21,48 +21,26 @@ namespace Guldkortet
         const int PORT = 12345;
 
         string messageFromClient, userInfo, cardInfo;
-        const string FILE_PATH_CARDS = @"C:\Users\Viktoriya\source\repos\Guldkortet\material\Material\Guldkortet\kortlista.txt";
-        const string FILE_PATH_USERS = @"C:\Users\Viktoriya\source\repos\Guldkortet\material\Material\Guldkortet\kundlista.txt";
+        string[] filePath = new string[2];
 
-        List<Card> cards = new List<Card>();
+        List<string[]> cards = new List<string[]>();
         List<string[]> users = new List<string[]>();
-        List<string> blockedUsers = new List<string>();
 
         public Form1()
         {
             InitializeComponent();
         }
-
-        public async void StartReception()
+        #region Server
+        private void avslutaKopplingToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                client = await listener.AcceptTcpClientAsync();
+                listener.Stop();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message, Text); }
-
-            btnStart.BackColor = Color.Turquoise;
-
-            StartReading(client);
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
 
-        public async void StartReading(TcpClient client)
-        {
-            byte[] buffer = new byte[40];
-
-            int start = 0;
-            try
-            {
-                start = await client.GetStream().ReadAsync(buffer, 0, buffer.Length);
-            }
-            catch(Exception ex) { MessageBox.Show(ex.Message, Text); return; }
-
-            messageFromClient = Encoding.Unicode.GetString(buffer, 0, start);
-            txbTextKontroll.AppendText(messageFromClient); // DELETE LATER
-
-            StartReading(client);
-        }
-        private void btnStart_Click(object sender, EventArgs e)
+        private void startaServerToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
@@ -74,11 +52,42 @@ namespace Guldkortet
             StartReception();
         }
 
+        public async void StartReception()
+        {
+            try
+            {
+                client = await listener.AcceptTcpClientAsync();
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message, Text); }
+
+            checkBox1.BackColor = Color.Turquoise;
+
+            StartReading(client);
+        }
+
+        public async void StartReading(TcpClient client)
+        {
+            byte[] buffer = new byte[1024];
+
+            int start = 0;
+            try
+            {
+                start = await client.GetStream().ReadAsync(buffer, 0, buffer.Length);
+            }
+            catch(Exception ex) { MessageBox.Show(ex.Message, Text); return; }
+
+            messageFromClient = Encoding.Unicode.GetString(buffer, 0, start);
+            txbTextKontroll.Text = messageFromClient;
+        }
+
         private void btnStartaKlient_Click(object sender, EventArgs e)
         {
             System.Diagnostics.Process.Start(@"C:\Users\Viktoriya\source\repos\Guldkortet\material\Material\Guldkortet\NOS_Export.exe");
         }  // DELETE LATER
 
+        #endregion
+
+        #region File load & save
         public List<string> FileLoad(string filePath)
         {
             List<string> fileLoad = new List<string>();
@@ -100,7 +109,7 @@ namespace Guldkortet
                 MessageBox.Show(ex.Message, Text);
                 return null;
             }
-        }  // done
+        }
 
         public List<string[]> FileSave(List<string> fileLoad)
         {
@@ -115,90 +124,163 @@ namespace Guldkortet
             
             // method that converts data inside to usable and addable to the card class
         }
+        #endregion
 
-        public void StoreData(List<string[]> saveList)
+        #region Browse file
+
+        bool fileTypeIsTxt;
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            List<string> cardList = new List<string>();
-            List<string> userList = new List<string>();
-
-            foreach (string[] array in saveList)
+            switch (comboBox1.SelectedIndex)
             {
-                cardList.Add(array[1]);
-                userList.Add(array[0]);
+                case 0:
+                    fileTypeIsTxt = true;
+                    dlgOpenFile.Filter = "Text files|*.txt";
+                    break;
+
+                case 1:
+                    fileTypeIsTxt = false;
+                    dlgOpenFile.Filter = "Database|*.mdf";
+                    break;
             }
-        }  // ??? needed?
-
-        public void StoreUserData(List<string[]> l)
-        {
-            users = l;
         }
-
-        private void button1_Click(object sender, EventArgs e)
+        private void btnBrowsa_Click(object sender, EventArgs e)
         {
+            DialogResult fileExplorer = dlgOpenFile.ShowDialog();
+            if (fileExplorer == DialogResult.OK)
+            {
+                cards = FileSave(FileLoad(dlgOpenFile.FileName));
+            }
+        } //choosing file/database of cards
+        private void btnVäljKunddata_Click(object sender, EventArgs e)
+        {
+            DialogResult fileExplorer = dlgOpenFile.ShowDialog();
+            if (fileExplorer == DialogResult.OK)
+            {
+                users = FileSave(FileLoad(dlgOpenFile.FileName));
+            }
+
+        } // choosing file/database of users
+        #endregion
+
+        public void SendErrorMessageToClient(int typeOfMessage)
+        {
+            string message;
+            switch (typeOfMessage)
+            {
+                case 1:
+                    message = $"Kund- eller kortnummer är inte korrekt. Du har {3 /*- user.FailedAttempts*/} försök kvar";
+                    break;
+
+                case 2:
+                    message = "Maximala antal försök var nådda. Ditt konto blockeras. Kontakta administration för vidare information";
+                    break;
+
+                default:
+                    message = "Ditt konto är blockerad. Kontakta administration för vidare information";
+                    break;
+            }
+
+            SendMessageToClient(message, client);
+        }
+        public async void SendMessageToClient(string message, TcpClient client)
+        {
+            byte[] utData = Encoding.Unicode.GetBytes(message);
+
             try
             {
-                listener.Stop();
+                await client.GetStream().WriteAsync(utData, 0, utData.Length);
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { MessageBox.Show(ex.Message, Text); return; }
         }
 
-        private void btnFileLoad_Click(object sender, EventArgs e)
+        private void btnGetResult_Click(object sender, EventArgs e)
         {
-            FileSave(FileLoad(FILE_PATH_USERS));
+            AllSearchAndChecksOfRecivedCode();
+        } // starting checks and sending data back
 
-            FileSave(FileLoad(FILE_PATH_CARDS));
-
-        }
-
-        public void StoreCardData(List<string[]> l)
-        {
-            foreach(string[] array in l)
-            {
-                switch (array[1])
-                {
-                    case "Kristallhäst":
-                        {
-                            Card k = new Kristallhäst(array[0]);
-                            cards.Add(k);
-                            break;
-                        }
-
-                    case "Överpanda":
-                        {
-                            Card ö = new Överpanda(array[0]);
-                            cards.Add(ö);
-                            break;
-                        }
-
-                    case "Eldtomat":
-                        {
-                            Card e = new Eldtomat(array[0]);
-                            cards.Add(e);
-                            break;
-                        }
-                    default:
-                        {
-                            Card d = new Dunkerkatt(array[0]);
-                            cards.Add(d);
-                            break;
-                        }
-                }
-            }
-        }  // user data should be handled by database
-
-        private void btnDekonstruering_Click(object sender, EventArgs e)
+        List<GuldkortWinner> peopleWithPriseList = new List<GuldkortWinner>();
+        public void AllSearchAndChecksOfRecivedCode()
         {
             if (ValidityChecks.IsCodeInCorrectFormat(messageFromClient))
             {
                 string[] commonData = ValidityChecks.Dekonstruering(messageFromClient);
+
                 userInfo = commonData[0];
                 cardInfo = commonData[1];
 
-                listBox1.Text = userInfo.ToString(); // DELETE LATER
-                listBox1.Text = cardInfo.ToString(); // DELETE LATER
+                listBox1.Items.Add(userInfo);//DELETE LATER
+                listBox1.Items.Add(cardInfo);//DELETE LATER
+
+                GuldkortWinner winner;
+
+                string[] nameAndKommun = ValidityChecks.UserInfoMatch(users, userInfo);
+                if (nameAndKommun != null)
+                {
+                    winner = new GuldkortWinner(userInfo, nameAndKommun[0], nameAndKommun[1]);
+
+                    if (fileTypeIsTxt) // card/user info check w/ text file
+                    {
+                        string cardType = ValidityChecks.CardInfoMatch(cards, cardInfo);
+                        if (cardType != null)
+                        {
+                            CardAndUserInfoUniquenessCheck(nameAndKommun, cardType);
+                        }
+                        else
+                        {
+                            //send message that no match was found/wrong input
+                        }
+                    }
+                    else
+                    {
+                        // card/user info check w/ database
+                    }
+                }
+                else { SendErrorMessageToClient(1); /*user.FailedAttempts++*/; }
             }
-            else { MessageBox.Show("Data input incorrect"); }
-            // TODO send message to client
+            else { SendErrorMessageToClient(1); /*user.FailedAttempts++;*/ }
+
+            //if (user.FailedAttempts == 3)
+            //{
+            //    SendErrorMessageToClient(2);
+            //    //ValidityChecks.BlockUser(blockedUsers, userInfo); // TODO save blocked users in text file
+            //    return;
+            //}
+            //else if (blockedUsers.Contains(userInfo))
+            //{
+            //    SendErrorMessageToClient(3);
+            //    btnGetResult.BackColor = Color.Red;
+            //    return;
+            //}
         }
+        public void CardAndUserInfoUniquenessCheck(string[] nameAndKommun, string type)
+        {
+            for (int i = 0; i < peopleWithPriseList.Count; i++)
+            {
+                GuldkortWinner item = peopleWithPriseList[i];
+                if (item.UserNumber == userInfo)
+                {
+                    for (int j = 0; j < item.CardList.Count; j++)
+                    {
+                        Card card = item.CardList[j];
+                        if (card.Number == cardInfo)
+                        {
+                            return;
+                        }
+                    }
+                    item.CardList.Add(new Card(userInfo, cardInfo, type));
+                    return;
+                }
+            }
+            
+        }
+
+        public void ButtonOnOff(bool kortData, bool kundData, bool dekonstruera)
+        {
+            btnVäljKortdata.Enabled = kortData;
+            btnVäljKunddata.Enabled = kundData;
+            btnGetResult.Enabled = dekonstruera;
+        }
+
     }
 }

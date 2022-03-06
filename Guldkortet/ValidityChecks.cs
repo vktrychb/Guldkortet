@@ -19,28 +19,43 @@ namespace Guldkortet
 
         public static bool IsCodeInCorrectFormat(string code)
         {
-            return Regex.IsMatch(code, @"^A[0-9]{7}-K[0-9]{9}\z");
+            return Regex.IsMatch(code.Trim(), @"^A[0-9]{7}?-K[0-9]{9}?\z");
         }
 
-        public static bool UserInfoMatch(List<string[]> users, string userInfo)
+        public static string[] UserInfoMatch(List<string[]> users, string userInfo)
         {
             if (users.Count != 0)
             {
                 foreach (var user in users)
                 {
                     if (user[0] == userInfo) // kundnummer ligger under index 0
-                    { return true; }
+                    {
+                        string[] nameAndKommun = new string[] { user[1], user[2] };
+                        return nameAndKommun; 
+                    }
                 }
             }
-            return false;
+            return null;
         }
 
-        public static void BlockUser(List<string[]> users, List<string> blockedUsers, string user)
+        public static string CardInfoMatch(List<string[]> cards, string cardInfo)
         {
-            if (users.Count > 0)
+            if (cards.Count != 0)
             {
-                blockedUsers.Add(user);
+                foreach (var card in cards)
+                {
+                    if (card[0] == cardInfo)
+                    {
+                        return card[1];
+                    }
+                }
             }
+            return null;
+        } //SEARCH METHOD
+
+        public static void BlockUser(List<string> blockedUsers, string user)
+        {
+            blockedUsers.Add(user);
         }
         public static bool IsUserBlocked(List<string[]> users, List<string> blockedUsers, string user)
         {
@@ -53,6 +68,6 @@ namespace Guldkortet
             }
             return false;
         }
-
+        
     }
 }
