@@ -7,7 +7,7 @@ using System.Net.Sockets;
 
 namespace Guldkortet
 {
-    internal class GuldkortWinner
+    public class GuldkortWinner
     {
         public string UserNumber { get; set; }
         public List<Card> CardList = new List<Card>();

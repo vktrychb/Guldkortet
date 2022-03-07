@@ -22,16 +22,15 @@ namespace Guldkortet
             return Regex.IsMatch(code.Trim(), @"^A[0-9]{7}?-K[0-9]{9}?\z");
         }
 
-        public static string[] UserInfoMatch(List<string[]> users, string userInfo)
+        public static GuldkortWinner UserInfoMatch(List<GuldkortWinner> users, string userInfo)
         {
             if (users.Count != 0)
             {
                 foreach (var user in users)
                 {
-                    if (user[0] == userInfo) // kundnummer ligger under index 0
+                    if (user.UserNumber == userInfo) // kundnummer ligger under index 0
                     {
-                        string[] nameAndKommun = new string[] { user[1], user[2] };
-                        return nameAndKommun; 
+                        return user; 
                     }
                 }
             }
@@ -53,21 +52,5 @@ namespace Guldkortet
             return null;
         } //SEARCH METHOD
 
-        public static void BlockUser(List<string> blockedUsers, string user)
-        {
-            blockedUsers.Add(user);
-        }
-        public static bool IsUserBlocked(List<string[]> users, List<string> blockedUsers, string user)
-        {
-            if (users.Count > 0)
-            {
-                for (int i = 0; i < blockedUsers.Count; i++)
-                {
-                    if (blockedUsers[i] == user) { return true; }
-                }
-            }
-            return false;
-        }
-        
     }
 }

@@ -11,6 +11,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Data.SqlClient;
 
 namespace Guldkortet
 {
@@ -24,7 +25,6 @@ namespace Guldkortet
         string[] filePath = new string[2];
 
         List<string[]> cards = new List<string[]>();
-        List<string[]> users = new List<string[]>();
 
         public Form1()
         {
@@ -149,7 +149,14 @@ namespace Guldkortet
             DialogResult fileExplorer = dlgOpenFile.ShowDialog();
             if (fileExplorer == DialogResult.OK)
             {
-                cards = FileSave(FileLoad(dlgOpenFile.FileName));
+                if(fileTypeIsTxt)
+                {
+                    cards = FileSave(FileLoad(dlgOpenFile.FileName));
+                }
+                else
+                {
+                    StartSQLConnection(dlgOpenFile.FileName, true);
+                }
             }
         } //choosing file/database of cards
         private void btnVäljKunddata_Click(object sender, EventArgs e)
@@ -157,27 +164,98 @@ namespace Guldkortet
             DialogResult fileExplorer = dlgOpenFile.ShowDialog();
             if (fileExplorer == DialogResult.OK)
             {
-                users = FileSave(FileLoad(dlgOpenFile.FileName));
+                if(fileTypeIsTxt)
+                {
+                    List<string[]> users = FileSave(FileLoad(dlgOpenFile.FileName));
+                    MoveUserListToClass(users);
+                }
+                else
+                {
+                    StartSQLConnection(dlgOpenFile.FileName, false);
+                }
             }
 
         } // choosing file/database of users
+
+        List<GuldkortWinner> winnerList = new List<GuldkortWinner>();
+        public void MoveUserListToClass(List<string[]> userList)
+        {
+            for (int i = 0; i < userList.Count; i++)
+            {
+                string[] user = userList[i];
+                winnerList.Add(new GuldkortWinner(user[0], user[1], user[2]));
+            }
+        }
+
+        public void StartSQLConnection(string filePath, bool isItCardDatabase)
+        {
+            string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;
+                    AttachDbFilename=" + filePath + ";Integrated Security=True";
+
+            using (SqlConnection connection = new SqlConnection())
+            {
+                connection.Open();
+                if (isItCardDatabase)
+                {
+                    ReadFromCardDatabase(connection);
+                }
+                else
+                {
+                    ReadFromUserDatabase(connection);
+                }
+            }
+        }
+
+        public void ReadFromCardDatabase(SqlConnection connection)
+        {
+            string query = "SELECT * FROM Kort";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                SqlDataReader reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    string cardNr = reader.GetString(0);
+                    string cardType = reader.GetString(1);
+
+                    cards.Add(new string[] { cardNr, cardType });
+                }
+            }
+        }
+
+        public void ReadFromUserDatabase(SqlConnection connection)
+        {
+            string query = "SELECT * FROM Kunder";
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                SqlDataReader reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    string userNr = reader.GetString(0);
+                    string userName = reader.GetString(1);
+                    string userKommun = reader.GetString(2);
+
+                    winnerList.Add(new GuldkortWinner(userNr, userName, userKommun));
+                }
+            }
+        }
         #endregion
 
+        #region Send back message
         public void SendErrorMessageToClient(int typeOfMessage)
         {
             string message;
             switch (typeOfMessage)
             {
                 case 1:
-                    message = $"Kund- eller kortnummer är inte korrekt. Du har {3 /*- user.FailedAttempts*/} försök kvar";
+                    message = $"Kortnummer är inte korrekt. Du har {3 - winner.FailedAttempts} försök kvar";
                     break;
 
                 case 2:
-                    message = "Maximala antal försök var nådda. Ditt konto blockeras. Kontakta administration för vidare information";
+                    message = "Maximala antal försök var nådda. Ditt konto är blockerad. Kontakta administration för vidare information";
                     break;
 
                 default:
-                    message = "Ditt konto är blockerad. Kontakta administration för vidare information";
+                    message = "Kund- eller kortnummer är inte korrekt";
                     break;
             }
 
@@ -199,9 +277,10 @@ namespace Guldkortet
             AllSearchAndChecksOfRecivedCode();
         } // starting checks and sending data back
 
-        List<GuldkortWinner> peopleWithPriseList = new List<GuldkortWinner>();
+        GuldkortWinner winner;
         public void AllSearchAndChecksOfRecivedCode()
         {
+            GuldkortWinner loser = new GuldkortWinner();
             if (ValidityChecks.IsCodeInCorrectFormat(messageFromClient))
             {
                 string[] commonData = ValidityChecks.Dekonstruering(messageFromClient);
@@ -212,68 +291,58 @@ namespace Guldkortet
                 listBox1.Items.Add(userInfo);//DELETE LATER
                 listBox1.Items.Add(cardInfo);//DELETE LATER
 
-                GuldkortWinner winner;
-
-                string[] nameAndKommun = ValidityChecks.UserInfoMatch(users, userInfo);
-                if (nameAndKommun != null)
+                winner = ValidityChecks.UserInfoMatch(winnerList, userInfo);
+                if (winner != null)
                 {
-                    winner = new GuldkortWinner(userInfo, nameAndKommun[0], nameAndKommun[1]);
-
-                    if (fileTypeIsTxt) // card/user info check w/ text file
+                    if (winner.FailedAttempts < 3)
                     {
-                        string cardType = ValidityChecks.CardInfoMatch(cards, cardInfo);
-                        if (cardType != null)
+                        if (fileTypeIsTxt) // card/user info check w/ text file
                         {
-                            CardAndUserInfoUniquenessCheck(nameAndKommun, cardType);
+                            string cardType = ValidityChecks.CardInfoMatch(cards, cardInfo);
+
+                            if (cardType != null)
+                            {
+                                Card instanceOfCard = AddNewCard(cardType, cardInfo, winner);
+                                if (instanceOfCard != null)
+                                {
+                                    SendMessageToClient(instanceOfCard.ToString(), client);
+                                }
+                            }
+                            else
+                            {
+                                winner.FailedAttempts++;
+                                SendErrorMessageToClient(1);
+                            }
                         }
                         else
                         {
-                            //send message that no match was found/wrong input
+                            // card/user info check w/ database
                         }
                     }
-                    else
-                    {
-                        // card/user info check w/ database
-                    }
+                    else { SendErrorMessageToClient(2); }
                 }
-                else { SendErrorMessageToClient(1); /*user.FailedAttempts++*/; }
-            }
-            else { SendErrorMessageToClient(1); /*user.FailedAttempts++;*/ }
-
-            //if (user.FailedAttempts == 3)
-            //{
-            //    SendErrorMessageToClient(2);
-            //    //ValidityChecks.BlockUser(blockedUsers, userInfo); // TODO save blocked users in text file
-            //    return;
-            //}
-            //else if (blockedUsers.Contains(userInfo))
-            //{
-            //    SendErrorMessageToClient(3);
-            //    btnGetResult.BackColor = Color.Red;
-            //    return;
-            //}
-        }
-        public void CardAndUserInfoUniquenessCheck(string[] nameAndKommun, string type)
-        {
-            for (int i = 0; i < peopleWithPriseList.Count; i++)
-            {
-                GuldkortWinner item = peopleWithPriseList[i];
-                if (item.UserNumber == userInfo)
+                else
                 {
-                    for (int j = 0; j < item.CardList.Count; j++)
-                    {
-                        Card card = item.CardList[j];
-                        if (card.Number == cardInfo)
-                        {
-                            return;
-                        }
-                    }
-                    item.CardList.Add(new Card(userInfo, cardInfo, type));
-                    return;
+                    SendErrorMessageToClient(3);
                 }
             }
-            
+            else { SendErrorMessageToClient(1); loser.FailedAttempts++; }
         }
+
+        public Card AddNewCard(string cardType, string cardInfo, GuldkortWinner winner)
+        {
+            for (int j = 0; j < winner.CardList.Count; j++)
+            {
+                Card card = winner.CardList[j];
+                if (card.Number == cardInfo)
+                {
+                    return card;
+                }
+            }
+            winner.AddCardDataToUser(cardType, cardInfo, client);
+            return null;
+        }
+        #endregion
 
         public void ButtonOnOff(bool kortData, bool kundData, bool dekonstruera)
         {

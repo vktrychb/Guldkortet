@@ -10,13 +10,17 @@ namespace Guldkort_Generics
     {
         public string UserNumber { get; set; }
         public List<string> CardNumber = new List<string>();
+        string adress;
+        string name;
+        public int Number { get; set; }
 
         public Winner() { }
 
-        public Winner (string user, string card)
+        public Winner(string user, string winnerName, string winnerAdress)
         {
             UserNumber = user;
-            CardNumber.Add(card);
+            name = winnerName;
+            adress = winnerAdress;
         }
     }
     class Type1 : Winner

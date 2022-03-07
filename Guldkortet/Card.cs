@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Guldkortet
 {
-    internal class Card : GuldkortWinner
+    public class Card : GuldkortWinner
     {
         public string Number { get; set; }
 
