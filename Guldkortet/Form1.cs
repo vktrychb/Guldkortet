@@ -10,7 +10,6 @@ using System.Windows.Forms;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
-using System.Text.RegularExpressions;
 using System.Data.SqlClient;
 
 namespace Guldkortet
@@ -29,9 +28,29 @@ namespace Guldkortet
         public Form1()
         {
             InitializeComponent();
+            menuStrip1.Enabled = false;
+            ButtonOnOff(false, false);
         }
+
         #region Server
+
+        // STOP CONNECTION BTN
         private void avslutaKopplingToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            StopConnection();
+        }
+
+        //EXITS SERVER
+        private void exitServerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (client.Connected)
+            {
+                StopConnection();
+            }
+            Application.Exit();
+        }
+
+        public void StopConnection()
         {
             try
             {
@@ -40,7 +59,13 @@ namespace Guldkortet
             catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
 
+        //START CONNECTION BTN
         private void startaServerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            StartConnection();
+        }
+
+        public void StartConnection()
         {
             try
             {
@@ -60,7 +85,7 @@ namespace Guldkortet
             }
             catch (Exception ex) { MessageBox.Show(ex.Message, Text); }
 
-            checkBox1.BackColor = Color.Turquoise;
+            chbConnection.Checked = true;
 
             StartReading(client);
         }
@@ -77,17 +102,22 @@ namespace Guldkortet
             catch(Exception ex) { MessageBox.Show(ex.Message, Text); return; }
 
             messageFromClient = Encoding.Unicode.GetString(buffer, 0, start);
-            txbTextKontroll.Text = messageFromClient;
+
+            ProcessingOfRecievedData();
+            StartReading(client);
         }
 
-        private void btnStartaKlient_Click(object sender, EventArgs e)
+        //DELETE LATER
+        private void startaKlientToolStripMenuItem_Click(object sender, EventArgs e)
         {
             System.Diagnostics.Process.Start(@"C:\Users\Viktoriya\source\repos\Guldkortet\material\Material\Guldkortet\NOS_Export.exe");
-        }  // DELETE LATER
 
+        }
         #endregion
 
-        #region File load & save
+        #region TXT file load & save to lists
+        // sister methods, two parts of one proccess 
+        // of uploading data into server's lists
         public List<string> FileLoad(string filePath)
         {
             List<string> fileLoad = new List<string>();
@@ -110,7 +140,6 @@ namespace Guldkortet
                 return null;
             }
         }
-
         public List<string[]> FileSave(List<string> fileLoad)
         {
             List<string[]> importedList = new List<string[]>();
@@ -126,73 +155,15 @@ namespace Guldkortet
         }
         #endregion
 
-        #region Browse file
-
-        bool fileTypeIsTxt;
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            switch (comboBox1.SelectedIndex)
-            {
-                case 0:
-                    fileTypeIsTxt = true;
-                    dlgOpenFile.Filter = "Text files|*.txt";
-                    break;
-
-                case 1:
-                    fileTypeIsTxt = false;
-                    dlgOpenFile.Filter = "Database|*.mdf";
-                    break;
-            }
-        }
-        private void btnBrowsa_Click(object sender, EventArgs e)
-        {
-            DialogResult fileExplorer = dlgOpenFile.ShowDialog();
-            if (fileExplorer == DialogResult.OK)
-            {
-                if(fileTypeIsTxt)
-                {
-                    cards = FileSave(FileLoad(dlgOpenFile.FileName));
-                }
-                else
-                {
-                    StartSQLConnection(dlgOpenFile.FileName, true);
-                }
-            }
-        } //choosing file/database of cards
-        private void btnVäljKunddata_Click(object sender, EventArgs e)
-        {
-            DialogResult fileExplorer = dlgOpenFile.ShowDialog();
-            if (fileExplorer == DialogResult.OK)
-            {
-                if(fileTypeIsTxt)
-                {
-                    List<string[]> users = FileSave(FileLoad(dlgOpenFile.FileName));
-                    MoveUserListToClass(users);
-                }
-                else
-                {
-                    StartSQLConnection(dlgOpenFile.FileName, false);
-                }
-            }
-
-        } // choosing file/database of users
-
-        List<GuldkortWinner> winnerList = new List<GuldkortWinner>();
-        public void MoveUserListToClass(List<string[]> userList)
-        {
-            for (int i = 0; i < userList.Count; i++)
-            {
-                string[] user = userList[i];
-                winnerList.Add(new GuldkortWinner(user[0], user[1], user[2]));
-            }
-        }
-
+        #region DATABASE load + save to lists 
+        //equialent to TXT data uploading but for MDFs
+        //and including connection to SQL
         public void StartSQLConnection(string filePath, bool isItCardDatabase)
         {
             string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;
                     AttachDbFilename=" + filePath + ";Integrated Security=True";
 
-            using (SqlConnection connection = new SqlConnection())
+            using (SqlConnection connection = new SqlConnection(connectionString))
             {
                 connection.Open();
                 if (isItCardDatabase)
@@ -240,14 +211,142 @@ namespace Guldkortet
         }
         #endregion
 
+        #region saving changes to TXT file
+        // saves previously recieved user's cards
+        public void SaveChanges()
+        {
+            using (StreamWriter writer = new StreamWriter("Updated Winner List.txt"))
+            {
+                writer.WriteLine(messageFromClient);
+            }
+        }
+
+        //two parts of same process of updating
+        //to iclude previously recieved cards
+        public void CheckForUpdates()
+        {
+            try
+            {
+                List<string> l = new List<string>();
+                using (StreamReader reader = new StreamReader("Updated Winner List.txt"))
+                {
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        l.Add(line);
+                    }
+                }
+                UpdateWinnerList(l);
+            }
+            catch (Exception ex) { }
+        }
+        public void UpdateWinnerList(List<string> l)
+        {
+            foreach (string line in l)
+            {
+                string[] tempArray = ValidityChecks.Dekonstruering(line);
+                string userNr = tempArray[0];
+                string cardNr = tempArray[1];
+
+                GuldkortWinner w = ValidityChecks.UserInfoMatch(winnerList, userNr);
+                string cardType = ValidityChecks.CardInfoMatch(cards, cardNr);
+                AddNewCard(cardType, cardInfo, w);
+            }
+        }
+        #endregion
+
+        #region Browse file
+
+        bool fileTypeIsTxt;
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            switch (comboBox1.SelectedIndex)
+            {
+                case 0:
+                    fileTypeIsTxt = true;
+                    dlgOpenFile.Filter = "Text files|*.txt";
+                    break;
+
+                case 1:
+                    fileTypeIsTxt = false;
+                    dlgOpenFile.Filter = "Database|*.mdf";
+                    break;
+            }
+            ButtonOnOff(true, true);
+        }
+
+        //choosing file/database of cards
+        private void btnBrowsa_Click(object sender, EventArgs e)
+        {
+            DialogResult fileExplorer = dlgOpenFile.ShowDialog();
+            if (fileExplorer == DialogResult.OK)
+            {
+                if(fileTypeIsTxt)
+                {
+                    cards = FileSave(FileLoad(dlgOpenFile.FileName));
+                }
+                else
+                {
+                    StartSQLConnection(dlgOpenFile.FileName, true);
+                }
+                chbCardData.Checked = true;
+            }
+            if (chbCardData.Checked & chbUserData.Checked)
+            {
+                menuStrip1.Enabled = true;
+            }
+        }
+
+        // choosing file/database of users
+        private void btnVäljKunddata_Click(object sender, EventArgs e)
+        {
+            DialogResult fileExplorer = dlgOpenFile.ShowDialog();
+            if (fileExplorer == DialogResult.OK)
+            {
+                if(fileTypeIsTxt)
+                {
+                    List<string[]> users = FileSave(FileLoad(dlgOpenFile.FileName));
+                    MoveUserListToClass(users);
+                }
+                else
+                {
+                    StartSQLConnection(dlgOpenFile.FileName, false);
+                }
+                chbUserData.Checked = true;
+            }
+
+            if(chbCardData.Checked & chbUserData.Checked)
+            {
+                menuStrip1.Enabled = true;
+            }
+        } 
+
+        List<GuldkortWinner> winnerList = new List<GuldkortWinner>();
+        public void MoveUserListToClass(List<string[]> userList)
+        {
+            for (int i = 0; i < userList.Count; i++)
+            {
+                string[] user = userList[i];
+                winnerList.Add(new GuldkortWinner(user[0], user[1], user[2]));
+            }
+        }
+
+        //swithces choose file btns on/off
+        public void ButtonOnOff(bool kortData, bool kundData)
+        {
+            btnVäljKortdata.Enabled = kortData;
+            btnVäljKunddata.Enabled = kundData;
+        }
+        #endregion
+
         #region Send back message
-        public void SendErrorMessageToClient(int typeOfMessage)
+        public void SendErrorMessage(int typeOfMessage)
         {
             string message;
             switch (typeOfMessage)
             {
                 case 1:
-                    message = $"Kortnummer är inte korrekt. Du har {3 - winner.FailedAttempts} försök kvar";
+                    message = $"Kortnummer är inte korrekt. Du har {3 - clientsFailedAttempts} försök kvar";
                     break;
 
                 case 2:
@@ -259,9 +358,9 @@ namespace Guldkortet
                     break;
             }
 
-            SendMessageToClient(message, client);
+            SendMessageToClient(message);
         }
-        public async void SendMessageToClient(string message, TcpClient client)
+        public async void SendMessageToClient(string message)
         {
             byte[] utData = Encoding.Unicode.GetBytes(message);
 
@@ -272,15 +371,12 @@ namespace Guldkortet
             catch (Exception ex) { MessageBox.Show(ex.Message, Text); return; }
         }
 
-        private void btnGetResult_Click(object sender, EventArgs e)
-        {
-            AllSearchAndChecksOfRecivedCode();
-        } // starting checks and sending data back
-
         GuldkortWinner winner;
-        public void AllSearchAndChecksOfRecivedCode()
+        int clientsFailedAttempts;
+        public void ProcessingOfRecievedData()
         {
-            GuldkortWinner loser = new GuldkortWinner();
+            CheckForUpdates();
+
             if (ValidityChecks.IsCodeInCorrectFormat(messageFromClient))
             {
                 string[] commonData = ValidityChecks.Dekonstruering(messageFromClient);
@@ -288,68 +384,72 @@ namespace Guldkortet
                 userInfo = commonData[0];
                 cardInfo = commonData[1];
 
-                listBox1.Items.Add(userInfo);//DELETE LATER
-                listBox1.Items.Add(cardInfo);//DELETE LATER
-
                 winner = ValidityChecks.UserInfoMatch(winnerList, userInfo);
-                if (winner != null)
+                if (clientsFailedAttempts < 3) 
                 {
-                    if (winner.FailedAttempts < 3)
+                    if (winner != null)
                     {
-                        if (fileTypeIsTxt) // card/user info check w/ text file
-                        {
-                            string cardType = ValidityChecks.CardInfoMatch(cards, cardInfo);
+                        string cardType = ValidityChecks.CardInfoMatch(cards, cardInfo);
 
-                            if (cardType != null)
+                        if (cardType != null)
+                        {
+                            int instanceOfCard = AddNewCard(cardType, cardInfo, winner);
+                            if (instanceOfCard >= 0)
                             {
-                                Card instanceOfCard = AddNewCard(cardType, cardInfo, winner);
-                                if (instanceOfCard != null)
-                                {
-                                    SendMessageToClient(instanceOfCard.ToString(), client);
-                                }
+                                SendCongratulations(winner, instanceOfCard);
                             }
-                            else
-                            {
-                                winner.FailedAttempts++;
-                                SendErrorMessageToClient(1);
-                            }
+                            clientsFailedAttempts = 0;
+                            SaveChanges();
+                            StopConnection();
+                            StartConnection();
                         }
                         else
                         {
-                            // card/user info check w/ database
+                            clientsFailedAttempts++;
+                            SendErrorMessage(1);
+                            //StartReception();
                         }
                     }
-                    else { SendErrorMessageToClient(2); }
+                    else { SendErrorMessage(1); clientsFailedAttempts++; }
                 }
-                else
-                {
-                    SendErrorMessageToClient(3);
-                }
+                else { SendErrorMessage(2); client.Close(); }
+                //method for proper blocking can be made, then client is
+                //saved to a file/database and won't get access to server
+                //OR make user wait some time (eg 30 min)
             }
-            else { SendErrorMessageToClient(1); loser.FailedAttempts++; }
+            else { SendErrorMessage(1); clientsFailedAttempts++; }
         }
 
-        public Card AddNewCard(string cardType, string cardInfo, GuldkortWinner winner)
+        //checks if such card exists and adds new one if not
+        public int AddNewCard(string cardType, string cardInfo, GuldkortWinner winner)
         {
             for (int j = 0; j < winner.CardList.Count; j++)
             {
                 Card card = winner.CardList[j];
                 if (card.Number == cardInfo)
                 {
-                    return card;
+                    return winner.CardList.IndexOf(card);
                 }
             }
-            winner.AddCardDataToUser(cardType, cardInfo, client);
-            return null;
+            int instanceOfCard = winner.AddCardDataToUser(cardType, cardInfo, client);
+
+            SendCongratulations(winner, instanceOfCard);
+
+            return -1;
+        }
+
+        //formulates end message and sends it back to client-program
+        public void SendCongratulations(GuldkortWinner winner, int indexOfCardInstance)
+        {
+            string kommun = winner.kommun;
+            string cardType = winner.CardList[indexOfCardInstance].Type;
+            string userName = winner.name;
+
+            string message = $"Vi gratulerar dig {userName} på vinst av {cardType}-typ" +
+                $" Guldkort! Du kan hämta det på vårt närmsta spelbutik i {kommun}";
+
+            SendMessageToClient(message);
         }
         #endregion
-
-        public void ButtonOnOff(bool kortData, bool kundData, bool dekonstruera)
-        {
-            btnVäljKortdata.Enabled = kortData;
-            btnVäljKunddata.Enabled = kundData;
-            btnGetResult.Enabled = dekonstruera;
-        }
-
     }
 }

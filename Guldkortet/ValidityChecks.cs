@@ -9,6 +9,7 @@ namespace Guldkortet
 {
     public static class ValidityChecks
     {
+        //BREAKS CODE DOWN
         public static string[] Dekonstruering(string messageFromClient)
         {
             string[] messageArray = new string[2];
@@ -17,11 +18,17 @@ namespace Guldkortet
             return messageArray;
         }
 
+        //CHECKS CODE'S FORMAT/VALIDITY
         public static bool IsCodeInCorrectFormat(string code)
         {
-            return Regex.IsMatch(code.Trim(), @"^A[0-9]{7}?-K[0-9]{9}?\z");
+            try
+            {
+                return Regex.IsMatch(code.Trim(), @"^A[0-9]{7}?-K[0-9]{9}?\z");
+            }
+            catch(Exception ex) { return false; }
         }
 
+        //USER SEARCH METHOD
         public static GuldkortWinner UserInfoMatch(List<GuldkortWinner> users, string userInfo)
         {
             if (users.Count != 0)
@@ -37,6 +44,7 @@ namespace Guldkortet
             return null;
         }
 
+        //CARD SEARCH METHOD
         public static string CardInfoMatch(List<string[]> cards, string cardInfo)
         {
             if (cards.Count != 0)
@@ -50,7 +58,7 @@ namespace Guldkortet
                 }
             }
             return null;
-        } //SEARCH METHOD
+        } 
 
     }
 }

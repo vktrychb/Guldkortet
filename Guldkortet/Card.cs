@@ -9,51 +9,14 @@ namespace Guldkortet
     public class Card : GuldkortWinner
     {
         public string Number { get; set; }
+        public string Type { get; set; }
 
         public Card() { }
 
-        public Card(string cardNumber)
+        public Card(string cardNumber, string cardType)
         {
-            this.Number = cardNumber;
-        }
-
-        // needed??
-        public Card(string userInfo, string cardInfo, string type)
-        {
-            if (userInfo == UserNumber)
-            {
-                Number = cardInfo;
-                switch (type)
-                {
-                    case "Kristallhäst":
-                        {
-                            CardList.Add(new Kristallhäst(cardInfo));
-                            break;
-                        }
-
-                    case "Överpanda":
-                        {
-                            CardList.Add(new Överpanda(cardInfo));
-                            break;
-                        }
-
-                    case "Eldtomat":
-                        {
-                            CardList.Add(new Eldtomat(cardInfo));
-                            break;
-                        }
-                    default:
-                        {
-                            CardList.Add(new Dunderkatt(cardInfo));
-                            break;
-                        }
-                }
-            }
-        }
-
-        public override string ToString()
-        {
-            return Type;
+            Number = cardNumber;
+            Type = cardType;
         }
     }
 

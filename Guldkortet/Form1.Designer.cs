@@ -28,38 +28,26 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.btnStartaKlient = new System.Windows.Forms.Button();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.btnVäljKortdata = new System.Windows.Forms.Button();
             this.dlgOpenFile = new System.Windows.Forms.OpenFileDialog();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.chbUserData = new System.Windows.Forms.CheckBox();
+            this.chbCardData = new System.Windows.Forms.CheckBox();
             this.btnVäljKunddata = new System.Windows.Forms.Button();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.serverToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.startaServerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.avslutaKopplingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.txbTextKontroll = new System.Windows.Forms.TextBox();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.listBox1 = new System.Windows.Forms.ListBox();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.btnGetResult = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
+            this.startaKlientToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.chbConnection = new System.Windows.Forms.CheckBox();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.exitServerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox3.SuspendLayout();
             this.menuStrip1.SuspendLayout();
-            this.groupBox1.SuspendLayout();
-            this.groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
-            // 
-            // btnStartaKlient
-            // 
-            this.btnStartaKlient.Location = new System.Drawing.Point(173, 202);
-            this.btnStartaKlient.Name = "btnStartaKlient";
-            this.btnStartaKlient.Size = new System.Drawing.Size(82, 46);
-            this.btnStartaKlient.TabIndex = 2;
-            this.btnStartaKlient.Text = "Starta klient";
-            this.btnStartaKlient.UseVisualStyleBackColor = true;
-            this.btnStartaKlient.Click += new System.EventHandler(this.btnStartaKlient_Click);
             // 
             // comboBox1
             // 
@@ -67,9 +55,9 @@
             this.comboBox1.Items.AddRange(new object[] {
             "Fil",
             "Databas"});
-            this.comboBox1.Location = new System.Drawing.Point(6, 34);
+            this.comboBox1.Location = new System.Drawing.Point(6, 36);
             this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(93, 24);
+            this.comboBox1.Size = new System.Drawing.Size(198, 24);
             this.comboBox1.TabIndex = 12;
             this.comboBox1.Text = "Välj...";
             this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
@@ -77,9 +65,9 @@
             // btnVäljKortdata
             // 
             this.btnVäljKortdata.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnVäljKortdata.Location = new System.Drawing.Point(142, 34);
+            this.btnVäljKortdata.Location = new System.Drawing.Point(31, 66);
             this.btnVäljKortdata.Name = "btnVäljKortdata";
-            this.btnVäljKortdata.Size = new System.Drawing.Size(95, 23);
+            this.btnVäljKortdata.Size = new System.Drawing.Size(173, 23);
             this.btnVäljKortdata.TabIndex = 13;
             this.btnVäljKortdata.Text = "Kortdata";
             this.btnVäljKortdata.UseVisualStyleBackColor = true;
@@ -91,21 +79,43 @@
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.chbUserData);
+            this.groupBox3.Controls.Add(this.chbCardData);
             this.groupBox3.Controls.Add(this.btnVäljKunddata);
             this.groupBox3.Controls.Add(this.comboBox1);
             this.groupBox3.Controls.Add(this.btnVäljKortdata);
-            this.groupBox3.Location = new System.Drawing.Point(18, 76);
+            this.groupBox3.Location = new System.Drawing.Point(12, 74);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(399, 69);
+            this.groupBox3.Size = new System.Drawing.Size(210, 129);
             this.groupBox3.TabIndex = 15;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Datakälla för kund- och kortdata";
             // 
+            // chbUserData
+            // 
+            this.chbUserData.AutoSize = true;
+            this.chbUserData.Enabled = false;
+            this.chbUserData.Location = new System.Drawing.Point(7, 99);
+            this.chbUserData.Name = "chbUserData";
+            this.chbUserData.Size = new System.Drawing.Size(18, 17);
+            this.chbUserData.TabIndex = 16;
+            this.chbUserData.UseVisualStyleBackColor = true;
+            // 
+            // chbCardData
+            // 
+            this.chbCardData.AutoSize = true;
+            this.chbCardData.Enabled = false;
+            this.chbCardData.Location = new System.Drawing.Point(7, 68);
+            this.chbCardData.Name = "chbCardData";
+            this.chbCardData.Size = new System.Drawing.Size(18, 17);
+            this.chbCardData.TabIndex = 15;
+            this.chbCardData.UseVisualStyleBackColor = true;
+            // 
             // btnVäljKunddata
             // 
-            this.btnVäljKunddata.Location = new System.Drawing.Point(273, 35);
+            this.btnVäljKunddata.Location = new System.Drawing.Point(31, 95);
             this.btnVäljKunddata.Name = "btnVäljKunddata";
-            this.btnVäljKunddata.Size = new System.Drawing.Size(98, 23);
+            this.btnVäljKunddata.Size = new System.Drawing.Size(173, 23);
             this.btnVäljKunddata.TabIndex = 14;
             this.btnVäljKunddata.Text = "Kunddata";
             this.btnVäljKunddata.UseVisualStyleBackColor = true;
@@ -118,7 +128,7 @@
             this.serverToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(436, 28);
+            this.menuStrip1.Size = new System.Drawing.Size(485, 28);
             this.menuStrip1.TabIndex = 17;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -126,7 +136,9 @@
             // 
             this.serverToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.startaServerToolStripMenuItem,
-            this.avslutaKopplingToolStripMenuItem});
+            this.avslutaKopplingToolStripMenuItem,
+            this.startaKlientToolStripMenuItem,
+            this.exitServerToolStripMenuItem});
             this.serverToolStripMenuItem.Name = "serverToolStripMenuItem";
             this.serverToolStripMenuItem.Size = new System.Drawing.Size(64, 24);
             this.serverToolStripMenuItem.Text = "Server";
@@ -145,105 +157,68 @@
             this.avslutaKopplingToolStripMenuItem.Text = "Avsluta koppling";
             this.avslutaKopplingToolStripMenuItem.Click += new System.EventHandler(this.avslutaKopplingToolStripMenuItem_Click);
             // 
-            // checkBox1
+            // startaKlientToolStripMenuItem
             // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.checkBox1.Enabled = false;
-            this.checkBox1.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.checkBox1.Location = new System.Drawing.Point(342, 33);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(82, 20);
-            this.checkBox1.TabIndex = 19;
-            this.checkBox1.Tag = "Koppling";
-            this.checkBox1.Text = "Koppling";
-            this.checkBox1.UseVisualStyleBackColor = true;
+            this.startaKlientToolStripMenuItem.Name = "startaKlientToolStripMenuItem";
+            this.startaKlientToolStripMenuItem.Size = new System.Drawing.Size(203, 26);
+            this.startaKlientToolStripMenuItem.Text = "Starta klient";
+            this.startaKlientToolStripMenuItem.Click += new System.EventHandler(this.startaKlientToolStripMenuItem_Click);
             // 
-            // txbTextKontroll
+            // chbConnection
             // 
-            this.txbTextKontroll.Location = new System.Drawing.Point(6, 21);
-            this.txbTextKontroll.Name = "txbTextKontroll";
-            this.txbTextKontroll.Size = new System.Drawing.Size(198, 22);
-            this.txbTextKontroll.TabIndex = 1;
+            this.chbConnection.AutoSize = true;
+            this.chbConnection.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.chbConnection.Enabled = false;
+            this.chbConnection.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.chbConnection.Location = new System.Drawing.Point(391, 33);
+            this.chbConnection.Name = "chbConnection";
+            this.chbConnection.Size = new System.Drawing.Size(82, 20);
+            this.chbConnection.TabIndex = 19;
+            this.chbConnection.Tag = "Koppling";
+            this.chbConnection.Text = "Koppling";
+            this.chbConnection.UseVisualStyleBackColor = true;
             // 
-            // groupBox1
+            // pictureBox1
             // 
-            this.groupBox1.Controls.Add(this.txbTextKontroll);
-            this.groupBox1.Location = new System.Drawing.Point(18, 342);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(210, 51);
-            this.groupBox1.TabIndex = 6;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Indata";
+            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
+            this.pictureBox1.Location = new System.Drawing.Point(235, 59);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(183, 144);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.pictureBox1.TabIndex = 21;
+            this.pictureBox1.TabStop = false;
             // 
-            // listBox1
+            // exitServerToolStripMenuItem
             // 
-            this.listBox1.FormattingEnabled = true;
-            this.listBox1.ItemHeight = 16;
-            this.listBox1.Location = new System.Drawing.Point(6, 25);
-            this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(154, 52);
-            this.listBox1.TabIndex = 7;
-            // 
-            // groupBox2
-            // 
-            this.groupBox2.Controls.Add(this.listBox1);
-            this.groupBox2.Location = new System.Drawing.Point(251, 342);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(166, 83);
-            this.groupBox2.TabIndex = 8;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Dekonstruerad data";
-            // 
-            // btnGetResult
-            // 
-            this.btnGetResult.Location = new System.Drawing.Point(35, 265);
-            this.btnGetResult.Name = "btnGetResult";
-            this.btnGetResult.Size = new System.Drawing.Size(117, 27);
-            this.btnGetResult.TabIndex = 16;
-            this.btnGetResult.Text = "Få resultat";
-            this.btnGetResult.UseVisualStyleBackColor = true;
-            this.btnGetResult.Click += new System.EventHandler(this.btnGetResult_Click);
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(170, 306);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(107, 16);
-            this.label1.TabIndex = 20;
-            this.label1.Text = "DELETE LATER";
+            this.exitServerToolStripMenuItem.Name = "exitServerToolStripMenuItem";
+            this.exitServerToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.exitServerToolStripMenuItem.Text = "Exit server";
+            this.exitServerToolStripMenuItem.Click += new System.EventHandler(this.exitServerToolStripMenuItem_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(436, 450);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.checkBox1);
-            this.Controls.Add(this.btnGetResult);
+            this.ClientSize = new System.Drawing.Size(485, 251);
+            this.Controls.Add(this.pictureBox1);
+            this.Controls.Add(this.chbConnection);
             this.Controls.Add(this.groupBox3);
-            this.Controls.Add(this.groupBox2);
-            this.Controls.Add(this.groupBox1);
-            this.Controls.Add(this.btnStartaKlient);
             this.Controls.Add(this.menuStrip1);
             this.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";
             this.Text = "NOS_Server";
             this.groupBox3.ResumeLayout(false);
+            this.groupBox3.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
-            this.groupBox2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
 
         #endregion
-        private System.Windows.Forms.Button btnStartaKlient;
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.Button btnVäljKortdata;
         private System.Windows.Forms.OpenFileDialog dlgOpenFile;
@@ -253,13 +228,12 @@
         private System.Windows.Forms.ToolStripMenuItem serverToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem startaServerToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem avslutaKopplingToolStripMenuItem;
-        private System.Windows.Forms.CheckBox checkBox1;
-        private System.Windows.Forms.TextBox txbTextKontroll;
-        private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.ListBox listBox1;
-        private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.Button btnGetResult;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.CheckBox chbConnection;
+        private System.Windows.Forms.ToolStripMenuItem startaKlientToolStripMenuItem;
+        private System.Windows.Forms.CheckBox chbUserData;
+        private System.Windows.Forms.CheckBox chbCardData;
+        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.ToolStripMenuItem exitServerToolStripMenuItem;
     }
 }
 
